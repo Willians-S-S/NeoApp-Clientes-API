@@ -21,6 +21,20 @@ public class ClientService {
 
     @Autowired
     private ClientMapper clientMapper;
-    
+
+    public ClientResponseDTO creatClient(ClientRequestDTO clientRequestDTO) {
+        if (clientRepository.existsByEmail(clientRequestDTO.email())){
+            throw new RuntimeException("O endereço de e-mail informado já está registrado.");
+        }
+
+        if (clientRepository.existsByCpf(clientRequestDTO.cpf())){
+            throw new RuntimeException("O CPF informado já está registrado.");
+        }
+
+        Client client = clientMapper.toEntity(clientRequestDTO);
+        client = clientRepository.save(client);
+        return clientMapper.toResponse(client);
+    }
+
 
 }
