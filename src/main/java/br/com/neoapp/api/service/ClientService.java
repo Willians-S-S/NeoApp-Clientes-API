@@ -29,6 +29,8 @@ public class ClientService {
         client.setBirthday(clientRequestDTO.birthday());
         client.setCreatAt(OffsetDateTime.now());
         client.setUpdateAt(OffsetDateTime.now());
+
+        return  client;
     }
 
     public ClientResponseDTO clientToResponseDTO(Client client){
