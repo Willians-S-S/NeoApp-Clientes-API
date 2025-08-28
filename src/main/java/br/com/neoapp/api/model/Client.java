@@ -21,6 +21,7 @@ public class Client {
     private String name;
     private LocalDate birthday;
     private String email;
+    private String password;
     private String phone;
     private String cpf;
     private OffsetDateTime creatAt;
