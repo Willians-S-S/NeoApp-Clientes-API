@@ -7,9 +7,22 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.Period;
+
+@Mapper(componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        imports = {LocalDate.class, OffsetDateTime.class, Period.class}
+)
 public interface ClientMapper {
     @Mapping(target = "id", ignore = true)
     Client toEntity(ClientRequestDTO clientRequestDTO);
+
+    @Mapping(target = "age", expression = "java(calculateAge(client.getBirthday()))")
     ClientResponseDTO toResponse(Client client);
+
+    default Integer calculateAge(LocalDate birthDate) {
+        return Period.between(birthDate, LocalDate.now()).getYears();
+    }
 }
