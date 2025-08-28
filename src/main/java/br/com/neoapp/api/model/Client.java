@@ -3,6 +3,7 @@ package br.com.neoapp.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -18,6 +19,7 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
+    private LocalDate birthday;
     private String email;
     private String phone;
     private String cpf;
