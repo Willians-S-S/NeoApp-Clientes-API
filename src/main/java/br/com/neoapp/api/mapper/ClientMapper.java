@@ -17,6 +17,8 @@ import java.time.Period;
 )
 public interface ClientMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "creatAt", expression = "java(now())")
+    @Mapping(target = "updateAt", expression = "java(now())")
     Client toEntity(ClientRequestDTO clientRequestDTO);
 
     @Mapping(target = "age", expression = "java(calculateAge(client.getBirthday()))")
@@ -24,5 +26,9 @@ public interface ClientMapper {
 
     default Integer calculateAge(LocalDate birthDate) {
         return Period.between(birthDate, LocalDate.now()).getYears();
+    }
+
+    default OffsetDateTime now(){
+        return  OffsetDateTime.now();
     }
 }
