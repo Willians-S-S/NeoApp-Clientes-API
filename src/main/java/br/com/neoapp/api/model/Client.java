@@ -3,7 +3,7 @@ package br.com.neoapp.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "client_table")
@@ -21,6 +21,6 @@ public class Client {
     private String email;
     private String phone;
     private String cpf;
-    private LocalDate creatAt;
-    private LocalDate updateAt;
+    private OffsetDateTime creatAt;
+    private OffsetDateTime updateAt;
 }
