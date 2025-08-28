@@ -7,7 +7,9 @@ import br.com.neoapp.api.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.Period;
 
 @Service
 public class ClientService {
@@ -15,7 +17,7 @@ public class ClientService {
     @Autowired
     private ClientRepository clientRepository;
 
-    
+
 
     public Client requestDTOToClient(ClientRequestDTO clientRequestDTO){
         Client client = new Client();
@@ -27,5 +29,21 @@ public class ClientService {
         client.setBirthday(clientRequestDTO.birthday());
         client.setCreatAt(OffsetDateTime.now());
         client.setUpdateAt(OffsetDateTime.now());
+    }
+
+    public ClientResponseDTO clientToResponseDTO(Client client){
+
+        Integer age = Period.between(client.getBirthday(), LocalDate.now()).getYears();
+
+        return new ClientResponseDTO(client.getId(),
+                client.getName(),
+                age,
+                client.getEmail(),
+                client.getPhone(),
+                client.getCpf(),
+                client.getCreatAt(),
+                client.getUpdateAt()
+                );
+
     }
 }
