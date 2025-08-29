@@ -3,6 +3,7 @@ package br.com.neoapp.api.controller;
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
 import br.com.neoapp.api.service.ClientService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class ClientController {
     private ClientService clientService;
 
     @PostMapping
-    public ResponseEntity<ClientResponseDTO> creatClient(@RequestBody ClientRequestDTO clientRequestDTO){
+    public ResponseEntity<ClientResponseDTO> creatClient(@RequestBody @Valid ClientRequestDTO clientRequestDTO){
 
         ClientResponseDTO clientResponseDTO = clientService.creatClient(clientRequestDTO);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
