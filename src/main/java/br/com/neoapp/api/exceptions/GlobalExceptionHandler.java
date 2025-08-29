@@ -3,6 +3,8 @@ package br.com.neoapp.api.exceptions;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -41,5 +43,24 @@ public class GlobalExceptionHandler {
                         .path(request.getRequestURI())
                         .build()
                 );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationError> handleValidationErrors(MethodArgumentNotValidException e, HttpServletRequest request){
+        int status = HttpStatus.UNPROCESSABLE_ENTITY.value();
+
+        ValidationError err = (ValidationError) ValidationError.builder()
+                .timestamp(Instant.now())
+                .status(status)
+                .error("Validation Error")
+                .message("Dados inválidos. Verifique os erros de cada campo.")
+                .path(request.getRequestURI())
+                .build();
+
+        for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
+            err.addError(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+
+        return ResponseEntity.status(status).body(err);
     }
 }
