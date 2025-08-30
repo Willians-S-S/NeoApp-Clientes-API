@@ -93,5 +93,23 @@ public class ClientServiceTest {
         verify(clientRepository).save(client);
     }
 
-   
+    @Test
+    void createClientShouldThrowEmailExistsException(){
+        when(clientRepository.existsByEmail(anyString())).thenReturn(true);
+
+        assertThrows(EmailExistsException.class, () ->
+                clientService.creatClient(clientRequestDTO));
+
+        verify(clientRepository, never()).save(any());
+    }
+
+    @Test
+    void createClientShouldThrowCpfExistsException(){
+        when(clientRepository.existsByCpf(anyString())).thenReturn(true);
+
+        assertThrows(CpfExistsException.class, () ->
+                clientService.creatClient(clientRequestDTO));
+
+        verify(clientRepository, never()).save(any());
+    }
 }
