@@ -27,4 +27,22 @@ public class ClientRepositoryTest {
 
         Assertions.assertFalse(nonExist);
     }
+
+    @Test
+    void shouldReturnTrueWhenCpfAlreadyExists(){
+        String cpfExist = "11122233344";
+
+        boolean exist = clientRepository.existsByCpf(cpfExist);
+
+        Assertions.assertTrue(exist);
+    }
+
+    @Test
+    void shouldReturnFalseWhenCpfDoesNotExist(){
+        String cpfNonExist = "11111111111";
+
+        boolean nonExist = clientRepository.existsByCpf(cpfNonExist);
+
+        Assertions.assertFalse(nonExist);
+    }
 }
