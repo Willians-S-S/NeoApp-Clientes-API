@@ -101,4 +101,18 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.message").value("O CPF informado já está registrado."))
                 .andExpect(jsonPath("$.path").value("/api/v1/clients"));
     }
+
+    @Test
+    void creatClientWithInvalidDataShouldReturn422() throws Exception {
+        invalidRequestDTO = new ClientRequestDTO("", null, "email-invalido", "123", null, "cpf-invalido");
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequestDTO)))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
+                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
+                .andExpect(jsonPath("$.path").value("/api/v1/clients"));
+    }
+
 }
