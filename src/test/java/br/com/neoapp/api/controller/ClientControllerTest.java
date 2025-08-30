@@ -183,4 +183,25 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.errors[0].fieldName").value("name"))
                 .andExpect(jsonPath("$.errors[0].message").value("O nome não pode ser vazio."));
     }
+
+    @Test
+    void creatClientWithInvalidCpfShouldReturn422() throws Exception {
+        ClientRequestDTO nameEmptyInvalidRequestDTO = new ClientRequestDTO(
+                "João",
+                LocalDate.of(1990, 5, 15),
+                "emailalte@email.com",
+                "senha@123",
+                "11987654321",
+                "11111111111"
+        );
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(nameEmptyInvalidRequestDTO)))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
+                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
+                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.errors[0].fieldName").value("cpf"))
+                .andExpect(jsonPath("$.errors[0].message").value("CPF inválido."));
+    }
 }
