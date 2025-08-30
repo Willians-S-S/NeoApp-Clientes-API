@@ -38,6 +38,7 @@ public class ClientControllerTest {
     private ClientRequestDTO validRequestDTO;
     private ClientRequestDTO invalidRequestDTO;
     private ClientRequestDTO emailInvalidRequestDTO;
+    private ClientRequestDTO nameInvalidRequestDTO;
 
     @BeforeEach
     void setUp() {
@@ -65,6 +66,15 @@ public class ClientControllerTest {
                 "João Silva",
                 LocalDate.of(1990, 5, 15),
                 "emailinvalido",
+                "senha@123",
+                "11987654321",
+                "94360802048"
+        );
+
+        nameInvalidRequestDTO = new ClientRequestDTO(
+                "J",
+                LocalDate.of(1990, 5, 15),
+                "emailalte@email.com",
                 "senha@123",
                 "11987654321",
                 "94360802048"
@@ -137,5 +147,19 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/clients"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("email"))
                 .andExpect(jsonPath("$.errors[0].message").value("Formato de e-mail inválido."));
+    }
+
+    @Test
+    void creatClientWithInvalidNameShouldReturn422() throws Exception {
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(nameInvalidRequestDTO)))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
+                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
+                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.errors[0].fieldName").value("name"))
+                .andExpect(jsonPath("$.errors[0].message").value("size must be between 2 and 100"));
     }
 }
