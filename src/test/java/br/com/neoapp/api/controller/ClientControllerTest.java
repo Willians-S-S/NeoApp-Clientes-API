@@ -65,4 +65,17 @@ public class ClientControllerTest {
         assertThat(clientRepository.findAll()).hasSize(1);
         assertThat(clientRepository.existsByEmail("joao.silva@email.com")).isTrue();
     }
+
+    @Test
+    void creatClientWithExistingEmailShouldReturn409() throws Exception {
+        clientRepository.save(objectMapper.convertValue(validRequestDTO, br.com.neoapp.api.model.Client.class));
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequestDTO)))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("EMAIL_ALREADY_EXISTS"))
+                .andExpect(jsonPath("$.message").value("O endereço de e-mail informado já está registrado."))
+                .andExpect(jsonPath("$.path").value("/api/v1/clients"));
+    }
 }
