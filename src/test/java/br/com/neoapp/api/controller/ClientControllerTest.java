@@ -1,6 +1,8 @@
 package br.com.neoapp.api.controller;
 
+import br.com.caelum.stella.tinytype.CPF;
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
+import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,9 +17,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -235,5 +239,54 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/clients"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("password"))
                 .andExpect(jsonPath("$.errors[0].message").value("A senha deve ter no mínimo 8 caracteres."));
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma página de clientes com os padrões (page=0, size=20)")
+    void getAllClientsPageable_WithoutParams_ShouldReturnDefaultPage() throws Exception {
+
+        clientRepository.deleteAll();
+
+        for (int i = 1; i <= 25; i++) {
+            Client client = new Client();
+            client.setName("Cliente " + String.format("%02d", i));
+            client.setEmail("cliente" + i + "@email.com");
+            client.setCpf(gerarCpf());
+            client.setPassword("senha@123");
+            client.setBirthday(LocalDate.now().minusYears(20));
+            clientRepository.save(client);
+        }
+
+        mockMvc.perform(get("/api/v1/clients"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()", is(20)))
+                .andExpect(jsonPath("$.totalElements", is(25)))
+                .andExpect(jsonPath("$.totalPages", is(2)))
+                .andExpect(jsonPath("$.number", is(0)));
+    }
+
+    static String gerarCpf() {
+        Random r = new Random();
+        int[] d = new int[11];
+
+        for (int i = 0; i < 9; i++) {
+            d[i] = r.nextInt(10);
+        }
+
+        int s = 0;
+        for (int i = 0, w = 10; i < 9; i++, w--) {
+            s += d[i] * w;
+        }
+        d[9] = (s % 11 < 2) ? 0 : 11 - (s % 11);
+
+        s = 0;
+        for (int i = 0, w = 11; i < 10; i++, w--) {
+            s += d[i] * w;
+        }
+        d[10] = (s % 11 < 2) ? 0 : 11 - (s % 11);
+
+        return String.format("%d%d%d%d%d%d%d%d%d%d%d",
+                d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10]);
     }
 }
