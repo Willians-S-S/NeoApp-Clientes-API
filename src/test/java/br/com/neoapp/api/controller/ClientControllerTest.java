@@ -312,6 +312,20 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.totalElements", is(0)));
     }
 
+    @Test
+    @DisplayName("Deve retornar um cliente e status 200 quando o ID existir")
+    void getClientById_WhenIdExists_ShouldReturnClientAndStatus200() throws Exception {
+        Client savedClient = clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null));
+        String existingId = savedClient.getId();
+
+        mockMvc.perform(get("/api/v1/clients/{id}", existingId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(existingId)))
+                .andExpect(jsonPath("$.name", is("Bruno")))
+                .andExpect(jsonPath("$.email", is("bruno@email.com")))
+                .andExpect(jsonPath("$.age", is(30)));
+    }
+
     static String gerarCpf() {
         Random r = new Random();
         int[] d = new int[11];
