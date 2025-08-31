@@ -303,6 +303,15 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.content[2].name", is("Ana")));
     }
 
+    @Test
+    @DisplayName("Deve retornar uma página vazia quando não houver clientes")
+    void getAllClientsPageable_WhenNoClients_ShouldReturnEmptyPage() throws Exception {
+        mockMvc.perform(get("/api/v1/clients"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements", is(0)));
+    }
+
     static String gerarCpf() {
         Random r = new Random();
         int[] d = new int[11];
