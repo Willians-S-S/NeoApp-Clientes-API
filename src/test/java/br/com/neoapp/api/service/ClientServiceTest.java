@@ -8,6 +8,7 @@ import br.com.neoapp.api.mapper.ClientMapper;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Testes Unitários para o Serviço de Cliente (ClientService)")
 public class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;
@@ -81,6 +83,7 @@ public class ClientServiceTest {
     }
 
     @Test
+    @DisplayName("Deve criar um cliente com sucesso ao fornecer dados válidos")
     void createClientWithValidDataShouldSucceed() {
         when(clientRepository.existsByEmail(anyString())).thenReturn(false);
         when(clientRepository.existsByCpf(anyString())).thenReturn(false);
@@ -94,6 +97,7 @@ public class ClientServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar uma exceção ao tentar criar um cliente com e-mail já existente")
     void createClientShouldThrowEmailExistsException(){
         when(clientRepository.existsByEmail(anyString())).thenReturn(true);
 
@@ -104,6 +108,7 @@ public class ClientServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar uma exceção ao tentar criar um cliente com CPF já existente")
     void createClientShouldThrowCpfExistsException(){
         when(clientRepository.existsByCpf(anyString())).thenReturn(true);
 

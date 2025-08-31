@@ -4,6 +4,7 @@ import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.repository.ClientRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
+@DisplayName("Testes de Integração para o Endpoint de Criação de Cliente")
 public class ClientControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -82,6 +84,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve criar cliente e retornar status 201 ao receber dados válidos")
     void creatClientWithValidDataShouldPersistClientAndReturn201() throws Exception {
 
         mockMvc.perform(post("/api/v1/clients")
@@ -97,6 +100,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 409 ao tentar criar cliente com e-mail já existente")
     void creatClientWithExistingEmailShouldReturn409() throws Exception {
         clientRepository.save(objectMapper.convertValue(validRequestDTO, br.com.neoapp.api.model.Client.class));
 
@@ -110,6 +114,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 409 ao tentar criar cliente com CPF já existente")
     void creatClientWithExistingCpfShouldReturn409() throws Exception {
         clientRepository.save(objectMapper.convertValue(validRequestDTO, br.com.neoapp.api.model.Client.class));
 
@@ -123,6 +128,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 ao receber múltiplos campos inválidos")
     void creatClientWithInvalidDataShouldReturn422() throws Exception {
         invalidRequestDTO = new ClientRequestDTO("", null, "email-invalido", "123", null, "cpf-invalido");
 
@@ -136,6 +142,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 para formato de e-mail inválido")
     void creatClientWithInvalidEmailShouldReturn422() throws Exception {
 
         mockMvc.perform(post("/api/v1/clients")
@@ -150,6 +157,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 para nome fora do tamanho permitido")
     void creatClientWithInvalidNameShouldReturn422() throws Exception {
 
         mockMvc.perform(post("/api/v1/clients")
@@ -164,6 +172,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 para nome nulo ou vazio")
     void creatClientWithInvalidNameEmptyShouldReturn422() throws Exception {
         ClientRequestDTO nameEmptyInvalidRequestDTO = new ClientRequestDTO(
                 null,
@@ -185,6 +194,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 para CPF inválido")
     void creatClientWithInvalidCpfShouldReturn422() throws Exception {
         ClientRequestDTO nameEmptyInvalidRequestDTO = new ClientRequestDTO(
                 "João",
@@ -206,6 +216,7 @@ public class ClientControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar status 422 para senha com menos de 8 caracteres")
     void creatClientWithInvalidPasswordShouldReturn422() throws Exception {
         ClientRequestDTO nameEmptyInvalidRequestDTO = new ClientRequestDTO(
                 "João",
