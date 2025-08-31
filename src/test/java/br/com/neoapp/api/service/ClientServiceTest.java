@@ -254,4 +254,33 @@ public class ClientServiceTest {
         verify(clientUpdateMapper, never()).updateToClient(any(), any());
         verify(clientRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Deve excluir um cliente com sucesso quando o ID existir")
+    void deleteClientById_WhenIdExists_ShouldDeleteClient() {
+        String existingId = savedClient.getId();
+
+        when(clientRepository.findById(existingId)).thenReturn(Optional.of(savedClient));
+
+        doNothing().when(clientRepository).delete(savedClient);
+
+        clientService.deleteClientById(existingId);
+
+        verify(clientRepository, times(1)).findById(existingId);
+        verify(clientRepository, times(1)).delete(savedClient);
+    }
+
+    @Test
+    @DisplayName("Deve lançar ClientNotFound ao tentar excluir cliente com ID inexistente")
+    void deleteClientById_WhenIdDoesNotExist_ShouldThrowClientNotFoundException() {
+        String nonExistingId = UUID.randomUUID().toString();
+
+        when(clientRepository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+        assertThrows(ClientNotFound.class, () ->
+                clientService.deleteClientById(nonExistingId)
+        );
+
+        verify(clientRepository, never()).delete(any(Client.class));
+    }
 }
