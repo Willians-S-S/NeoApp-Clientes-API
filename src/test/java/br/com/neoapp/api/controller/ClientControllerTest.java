@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -324,6 +325,22 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.name", is("Bruno")))
                 .andExpect(jsonPath("$.email", is("bruno@email.com")))
                 .andExpect(jsonPath("$.age", is(30)));
+    }
+
+    @Test
+    @DisplayName("Deve retornar status 404 e corpo de erro padrão quando o ID não existir")
+    void getClientById_WhenIdDoesNotExist_ShouldReturnStatus404AndErrorBody() throws Exception {
+        String nonExistentId = UUID.randomUUID().toString();
+        String expectedMessage = "O clinte informado não foi encontrado.";
+        String expectedPath = "/api/v1/clients/" + nonExistentId;
+
+        mockMvc.perform(get("/api/v1/clients/{id}", nonExistentId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("CLIENT_NOT_FOUND")))
+                .andExpect(jsonPath("$.message", is(expectedMessage)))
+                .andExpect(jsonPath("$.path", is(expectedPath)));
     }
 
     static String gerarCpf() {
