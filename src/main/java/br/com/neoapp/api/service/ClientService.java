@@ -2,6 +2,7 @@ package br.com.neoapp.api.service;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
+import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.CpfExistsException;
 import br.com.neoapp.api.exceptions.EmailExistsException;
 import br.com.neoapp.api.mapper.ClientMapper;
@@ -68,5 +69,12 @@ public class ClientService {
      */
     public Page<ClientResponseDTO> getAllClientsPageable(Pageable pageable) {
         return clientMapper.toPageResponse(clientRepository.findAll(pageable));
+    }
+
+    public ClientResponseDTO getClientById(String id) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFound("O clinte informado não foi encontrado."));
+
+        return clientMapper.toResponse(client);
     }
 }
