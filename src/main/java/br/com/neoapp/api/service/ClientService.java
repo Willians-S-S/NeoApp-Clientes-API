@@ -8,6 +8,8 @@ import br.com.neoapp.api.mapper.ClientMapper;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -51,4 +53,7 @@ public class ClientService {
     }
 
 
+    public Page<ClientResponseDTO> getAllClientsPageable(Pageable pageable) {
+        return clientMapper.toPageResponse(clientRepository.findAll(pageable));
+    }
 }
