@@ -83,4 +83,9 @@ public class ClientController {
         return ResponseEntity.ok().body(clientService.getAllClientsPageable(pageable));
     }
 
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable String id){
+        return ResponseEntity.ok().body(clientService.getClientById(id));
+    }
+
 }
