@@ -112,6 +112,35 @@ public class ClientController {
         return ResponseEntity.ok().body(clientService.getClientById(id));
     }
 
+    @Operation(
+            summary = "Atualizar um cliente por ID",
+            description = "Atualiza os dados de um cliente existente com base no seu ID. Esta operação " +
+                    "substitui os dados do cliente com as informações fornecidas no corpo da requisição."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Cliente atualizado com sucesso",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClientResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Dados inválidos fornecidos",
+                    content = { @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ValidationError.class)) }),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "O clinte informado não foi encontrado.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class)
+                    )
+            )
+    })
     @PutMapping(value = "/{id}")
     public ResponseEntity<ClientResponseDTO> updateClientById(@PathVariable String id,
                                                               @Valid @RequestBody ClientUpdateDTO clientUpdateDTO){
