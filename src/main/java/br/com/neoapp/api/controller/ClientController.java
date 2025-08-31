@@ -2,6 +2,7 @@ package br.com.neoapp.api.controller;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
+import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.StandardError;
 import br.com.neoapp.api.exceptions.ValidationError;
 import br.com.neoapp.api.service.ClientService;
@@ -83,6 +84,28 @@ public class ClientController {
         return ResponseEntity.ok().body(clientService.getAllClientsPageable(pageable));
     }
 
+    @Operation(
+            summary = "Buscar cliente por ID",
+            description = "Retorna os detalhes de um cliente específico com base no seu ID."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Cliente encontrado com sucesso",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClientResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Cliente não encontrado para o ID fornecido",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClientNotFound.class)
+                    )
+            ),
+    })
     @GetMapping(value = "/{id}")
     public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable String id){
         return ResponseEntity.ok().body(clientService.getClientById(id));
