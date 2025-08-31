@@ -14,12 +14,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
+import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -117,4 +123,50 @@ public class ClientServiceTest {
 
         verify(clientRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Deve retornar uma página de DTOs de cliente com sucesso")
+    void getAllClientsPageable_WhenClientsExist_ShouldReturnClientPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Client client2 = new Client();
+        client2.setId(UUID.randomUUID().toString());
+        client2.setName("Maria");
+        client2.setBirthday(LocalDate.of(1995, 5, 5));
+        client2.setEmail("maria@email.com");
+        client2.setPassword("senha@123");
+        client2.setPhone("11988888888");
+        client2.setCpf("98765432100");
+
+        List<Client> clientList = List.of(savedClient, client2);
+        Page<Client> clientPage = new PageImpl<>(clientList, pageable, clientList.size());
+
+        int age2 = Period.between(client2.getBirthday(), LocalDate.now()).getYears();
+        ClientResponseDTO dto2 = new ClientResponseDTO(
+                client2.getId(),
+                client2.getName(),
+                age2,
+                client2.getEmail(),
+                client2.getPhone(),
+                client2.getCpf(),
+                OffsetDateTime.now(),
+                OffsetDateTime.now()
+        );
+
+        List<ClientResponseDTO> dtoList = List.of(clientResponseDTO, dto2);
+        Page<ClientResponseDTO> expectedDtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
+
+        when(clientRepository.findAll(pageable)).thenReturn(clientPage);
+        when(clientMapper.toPageResponse(clientPage)).thenReturn(expectedDtoPage);
+
+        Page<ClientResponseDTO> result = clientService.getAllClientsPageable(pageable);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result).isEqualTo(expectedDtoPage);
+
+        verify(clientRepository, times(1)).findAll(pageable);
+        verify(clientMapper, times(1)).toPageResponse(clientPage);
+    }
+
 }
