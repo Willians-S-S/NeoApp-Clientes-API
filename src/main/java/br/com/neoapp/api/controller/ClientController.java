@@ -147,7 +147,22 @@ public class ClientController {
         return ResponseEntity.ok().body(clientService.updateClientById(id, clientUpdateDTO));
     }
 
-
+    @Operation(
+            summary = "Excluir um cliente por ID",
+            description = "Remove permanentemente um cliente do sistema com base no seu ID."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Cliente excluído com sucesso. Nenhum conteúdo no corpo da resposta.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Cliente não encontrado para o ID fornecido",
+                    content = @Content
+            )
+    })
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteClientById(@PathVariable String id){
         clientService.deleteClientById(id);
