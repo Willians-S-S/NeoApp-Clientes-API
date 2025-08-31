@@ -2,10 +2,12 @@ package br.com.neoapp.api.service;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
+import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
 import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.CpfExistsException;
 import br.com.neoapp.api.exceptions.EmailExistsException;
 import br.com.neoapp.api.mapper.ClientMapper;
+import br.com.neoapp.api.mapper.ClientUpdateMapper;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class ClientService {
 
     @Autowired
     private ClientMapper clientMapper;
+
+    @Autowired
+    private ClientUpdateMapper clientUpdateMapper;
 
     /**
      * Cria um novo cliente no sistema a partir dos dados fornecidos.
@@ -86,6 +91,17 @@ public class ClientService {
     public ClientResponseDTO getClientById(String id) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFound("O clinte informado não foi encontrado."));
+
+        return clientMapper.toResponse(client);
+    }
+
+    public ClientResponseDTO updateClientById(String id, ClientUpdateDTO clientUpdateDTO) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new
+                ClientNotFound("O clinte informado não foi encontrado."));
+
+        clientUpdateMapper.updateToClient(clientUpdateDTO, client);
+
+        clientRepository.save(client);
 
         return clientMapper.toResponse(client);
     }
