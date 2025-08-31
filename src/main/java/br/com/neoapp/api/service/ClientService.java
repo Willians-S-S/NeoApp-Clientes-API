@@ -95,6 +95,19 @@ public class ClientService {
         return clientMapper.toResponse(client);
     }
 
+    /**
+     * Atualiza os dados de um cliente existente com base em seu ID.
+     * <p>
+     * Este método primeiro localiza o cliente no banco de dados. Se não for encontrado,
+     * lança uma exceção {@code ClientNotFound}. Caso contrário, utiliza um mapper para
+     * aplicar as atualizações do DTO na entidade encontrada, persiste as alterações
+     * e retorna um DTO de resposta com os dados atualizados.
+     *
+     * @param id O identificador único (ID) do cliente a ser atualizado.
+     * @param clientUpdateDTO O DTO contendo os novos dados para o cliente.
+     * @return Um {@link ClientResponseDTO} com as informações do cliente após a atualização.
+     * @throws ClientNotFound se nenhum cliente for encontrado com o ID especificado.
+     */
     public ClientResponseDTO updateClientById(String id, ClientUpdateDTO clientUpdateDTO) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new
                 ClientNotFound("O clinte informado não foi encontrado."));
