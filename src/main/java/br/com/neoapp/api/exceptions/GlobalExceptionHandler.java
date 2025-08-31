@@ -63,4 +63,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status).body(err);
     }
+
+    @ExceptionHandler(ClientNotFound.class)
+    public ResponseEntity<StandardError> handleClientNotFound(ClientNotFound e, HttpServletRequest request){
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return ResponseEntity
+                .status(status)
+                .body(StandardError
+                        .builder()
+                        .timestamp(Instant.now())
+                        .status(status.value())
+                        .error(ClientNotFound.ERROR)
+                        .message(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
+    }
 }
