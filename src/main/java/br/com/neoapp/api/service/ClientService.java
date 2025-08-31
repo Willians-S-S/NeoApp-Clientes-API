@@ -118,7 +118,17 @@ public class ClientService {
 
         return clientMapper.toResponse(client);
     }
-    
+
+    /**
+     * Exclui um cliente do banco de dados com base no seu ID.
+     * <p>
+     * O método primeiro verifica a existência do cliente. Se o cliente for encontrado,
+     * ele é removido permanentemente. Se não for encontrado, uma exceção
+     * {@code ClientNotFound} é lançada.
+     *
+     * @param id O identificador único (ID) do cliente a ser excluído.
+     * @throws ClientNotFound se nenhum cliente for encontrado com o ID especificado.
+     */
     public void deleteClientById(String id) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new
                 ClientNotFound("O clinte informado não foi encontrado."));
