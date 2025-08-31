@@ -2,6 +2,7 @@ package br.com.neoapp.api.controller;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
+import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
 import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.StandardError;
 import br.com.neoapp.api.exceptions.ValidationError;
@@ -109,6 +110,12 @@ public class ClientController {
     @GetMapping(value = "/{id}")
     public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable String id){
         return ResponseEntity.ok().body(clientService.getClientById(id));
+    }
+
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ClientResponseDTO> updateClientById(@PathVariable String id,
+                                                              @Valid @RequestBody ClientUpdateDTO clientUpdateDTO){
+        return ResponseEntity.ok().body(clientService.updateClientById(id, clientUpdateDTO));
     }
 
 }
