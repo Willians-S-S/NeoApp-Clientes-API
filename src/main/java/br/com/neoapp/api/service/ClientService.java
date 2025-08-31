@@ -71,6 +71,18 @@ public class ClientService {
         return clientMapper.toPageResponse(clientRepository.findAll(pageable));
     }
 
+    /**
+     * Busca um cliente específico pelo seu ID.
+     * <p>
+     * Este método consulta o repositório em busca de um cliente com o ID fornecido.
+     * Se o cliente for encontrado, ele é mapeado para um objeto {@code ClientResponseDTO}.
+     * Caso contrário, uma exceção {@code ClientNotFound} é lançada, indicando que o
+     * recurso não existe.
+     *
+     * @param id O identificador único (ID) do cliente a ser buscado.
+     * @return O {@link ClientResponseDTO} correspondente ao cliente encontrado.
+     * @throws ClientNotFound se nenhum cliente for encontrado com o ID especificado.
+     */
     public ClientResponseDTO getClientById(String id) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFound("O clinte informado não foi encontrado."));
