@@ -402,6 +402,42 @@ public class ClientControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Deve retornar status 422 ao tentar atualizar com dados inválidos")
+    void updateClientById_WithInvalidData_ShouldReturn422() throws Exception {
+        String cpf = gerarCpf();
+        Client existingClient = clientRepository.save(new Client(
+                null,
+                "Nome Antigo",
+                LocalDate.of(1990, 1, 1),
+                "antigo@email.com",
+                "senha_antiga", // Senha antiga
+                "89994574321",
+                cpf,
+                null,
+                null
+        ));
+        String existingId = existingClient.getId();
+
+        var invalidUpdateDTO = new ClientUpdateDTO(
+                "",
+                LocalDate.of(1990, 1, 1),
+                "emial",
+                "senha@123",
+                "89994572322",
+                "1111111111111"
+        );
+
+        mockMvc.perform(put("/api/v1/clients/{id}", existingId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidUpdateDTO)))
+                .andExpect(status().isUnprocessableEntity());
+
+        Client clientInDb = clientRepository.findById(existingId).get();
+        assertThat(clientInDb.getName()).isEqualTo("Nome Antigo");
+    }
+
+
     static String gerarCpf() {
         Random r = new Random();
         int[] d = new int[11];
