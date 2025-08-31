@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,4 +170,22 @@ public class ClientServiceTest {
         verify(clientMapper, times(1)).toPageResponse(clientPage);
     }
 
+    @Test
+    @DisplayName("Deve retornar uma página vazia quando não houver clientes")
+    void getAllClientsPageable_WhenNoClientsExist_ShouldReturnEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Client> emptyClientPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<ClientResponseDTO> expectedEmptyDtoPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(clientRepository.findAll(pageable)).thenReturn(emptyClientPage);
+        when(clientMapper.toPageResponse(emptyClientPage)).thenReturn(expectedEmptyDtoPage);
+
+        Page<ClientResponseDTO> result = clientService.getAllClientsPageable(pageable);
+
+        assertThat(result).isNotNull();
+        assertThat(result.isEmpty()).isTrue();
+
+        verify(clientRepository).findAll(pageable);
+        verify(clientMapper).toPageResponse(emptyClientPage);
+    }
 }
