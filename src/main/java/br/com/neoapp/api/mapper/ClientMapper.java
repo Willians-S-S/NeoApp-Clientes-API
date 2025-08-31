@@ -6,6 +6,7 @@ import br.com.neoapp.api.model.Client;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -28,5 +29,9 @@ public interface ClientMapper {
 
     default OffsetDateTime now(){
         return  OffsetDateTime.now();
+    }
+
+    default Page<ClientResponseDTO> toPageResponse(Page<Client> clientsPage) {
+        return clientsPage.map(this::toResponse);
     }
 }
