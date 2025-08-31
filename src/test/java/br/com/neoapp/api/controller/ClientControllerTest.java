@@ -288,6 +288,21 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.number", is(1)));
     }
 
+    @Test
+    @DisplayName("Deve retornar uma lista de clientes ordenada por nome em ordem descendente")
+    void getAllClientsPageable_WithSortParam_ShouldReturnSortedPage() throws Exception {
+        clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null));
+        clientRepository.save(new Client(null, "Ana", LocalDate.now().minusYears(30), "ana@email.com", "senha@123", null, gerarCpf(), null, null));
+        clientRepository.save(new Client(null, "Carlos", LocalDate.now().minusYears(30), "carlos@email.com", "senha@123", null, gerarCpf(), null, null));
+
+        mockMvc.perform(get("/api/v1/clients")
+                        .param("sort", "name,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name", is("Carlos")))
+                .andExpect(jsonPath("$.content[1].name", is("Bruno")))
+                .andExpect(jsonPath("$.content[2].name", is("Ana")));
+    }
+
     static String gerarCpf() {
         Random r = new Random();
         int[] d = new int[11];
