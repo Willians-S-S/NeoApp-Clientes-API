@@ -52,7 +52,20 @@ public class ClientService {
         return clientMapper.toResponse(client);
     }
 
-
+    /**
+     * Busca uma lista paginada de todos os clientes.
+     * <p>
+     * Este método consulta o repositório para obter uma página de entidades {@code Client}
+     * aplicando os critérios de paginação e ordenação fornecidos. Em seguida, utiliza
+     * um mapper para converter a página de entidades em uma página de {@code ClientResponseDTO},
+     * que é um formato seguro para exposição em camadas superiores, como a API.
+     *
+     * @param pageable Objeto contendo as informações de paginação (número da página, tamanho)
+     * e ordenação (campo, direção).
+     * @return Uma {@link Page} contendo a lista de {@link ClientResponseDTO} para a página
+     * solicitada, juntamente com todas as informações de paginação (total de elementos,
+     * total de páginas, etc.).
+     */
     public Page<ClientResponseDTO> getAllClientsPageable(Pageable pageable) {
         return clientMapper.toPageResponse(clientRepository.findAll(pageable));
     }
