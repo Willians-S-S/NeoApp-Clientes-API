@@ -1,6 +1,7 @@
 package br.com.neoapp.api.controller;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
+import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,8 +22,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -341,6 +341,46 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.error", is("CLIENT_NOT_FOUND")))
                 .andExpect(jsonPath("$.message", is(expectedMessage)))
                 .andExpect(jsonPath("$.path", is(expectedPath)));
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um cliente com sucesso e retornar status 200")
+    void updateClientById_WithValidDataAndExistingId_ShouldReturn200() throws Exception {
+        String cpf = gerarCpf();
+        Client existingClient = clientRepository.save(new Client(
+                null,
+                "Nome Antigo",
+                LocalDate.of(1990, 1, 1),
+                "antigo@email.com",
+                "senha_antiga", // Senha antiga
+                "89994574321",
+                cpf,
+                null,
+                null
+        ));
+        String existingId = existingClient.getId();
+
+        var updateDTO = new ClientUpdateDTO(
+                "Nome Novo",
+                LocalDate.of(1990, 1, 1),
+                "novo@email.com",
+                "nova_senha_123",
+                "89994572322",
+                cpf
+        );
+
+        mockMvc.perform(put("/api/v1/clients/{id}", existingId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(existingId)))
+                .andExpect(jsonPath("$.name", is("Nome Novo")))
+                .andExpect(jsonPath("$.email", is("novo@email.com")))
+                .andExpect(jsonPath("$.phone", is("89994572322")));
+
+        Client updatedClientInDb = clientRepository.findById(existingId).get();
+        assertThat(updatedClientInDb.getName()).isEqualTo("Nome Novo");
+        assertThat(updatedClientInDb.getEmail()).isEqualTo("novo@email.com");
     }
 
     static String gerarCpf() {
