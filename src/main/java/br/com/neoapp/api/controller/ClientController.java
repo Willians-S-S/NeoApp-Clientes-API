@@ -63,6 +63,21 @@ public class ClientController {
                 .body(clientResponseDTO);
     }
 
+    @Operation(
+            summary = "Listar todos os clientes com paginação",
+            description = "Retorna uma lista paginada de todos os clientes cadastrados no sistema. " +
+                    "Os parâmetros de paginação como `page`, `size` e `sort` podem ser enviados na URL."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Busca os clientes com páginação.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class)
+                    )
+            ),
+    })
     @GetMapping
     public ResponseEntity<Page<ClientResponseDTO>> getAllClientsPageable(Pageable pageable){
         return ResponseEntity.ok().body(clientService.getAllClientsPageable(pageable));
