@@ -118,4 +118,11 @@ public class ClientService {
 
         return clientMapper.toResponse(client);
     }
+    
+    public void deleteClientById(String id) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new
+                ClientNotFound("O clinte informado não foi encontrado."));
+
+        clientRepository.delete(client);
+    }
 }
