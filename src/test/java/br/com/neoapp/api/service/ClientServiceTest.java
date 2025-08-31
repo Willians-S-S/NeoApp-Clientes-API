@@ -2,9 +2,12 @@ package br.com.neoapp.api.service;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
+import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
+import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.CpfExistsException;
 import br.com.neoapp.api.exceptions.EmailExistsException;
 import br.com.neoapp.api.mapper.ClientMapper;
+import br.com.neoapp.api.mapper.ClientUpdateMapper;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +42,9 @@ public class ClientServiceTest {
     private ClientRepository clientRepository;
     @Mock
     private ClientMapper clientMapper;
+
+    @Mock
+    private ClientUpdateMapper clientUpdateMapper;
 
     @InjectMocks
     private ClientService clientService;
@@ -187,5 +194,64 @@ public class ClientServiceTest {
 
         verify(clientRepository).findAll(pageable);
         verify(clientMapper).toPageResponse(emptyClientPage);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um cliente com sucesso quando o ID existir")
+    void updateClientById_WhenIdExists_ShouldUpdateAndReturnClientResponseDTO() {
+        String existingId = savedClient.getId();
+
+        var updateDTO = new ClientUpdateDTO(
+                "Nome Atualizado",
+                LocalDate.of(1991, 2, 2),
+                "email.atualizado@email.com",
+                "novaSenha123",
+                "89999998888",
+                savedClient.getCpf()
+        );
+
+        int updatedAge = Period.between(updateDTO.birthday(), LocalDate.now()).getYears();
+        var expectedResponseDTO = new ClientResponseDTO(
+                existingId,
+                updateDTO.name(),
+                updatedAge,
+                updateDTO.email(),
+                updateDTO.phone(),
+                updateDTO.cpf(),
+                null, null
+        );
+
+        when(clientRepository.findById(existingId)).thenReturn(Optional.of(savedClient));
+        when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
+        when(clientMapper.toResponse(any(Client.class))).thenReturn(expectedResponseDTO);
+
+        doNothing().when(clientUpdateMapper).updateToClient(eq(updateDTO), eq(savedClient));
+
+        ClientResponseDTO actualResponse = clientService.updateClientById(existingId, updateDTO);
+
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse.name()).isEqualTo("Nome Atualizado");
+        assertThat(actualResponse.id()).isEqualTo(existingId);
+
+        verify(clientRepository).findById(existingId);
+        verify(clientUpdateMapper).updateToClient(updateDTO, savedClient);
+        verify(clientRepository).save(savedClient);
+        verify(clientMapper).toResponse(savedClient);
+    }
+
+    @Test
+    @DisplayName("Deve lançar ClientNotFound ao tentar atualizar cliente com ID inexistente")
+    void updateClientById_WhenIdDoesNotExist_ShouldThrowClientNotFoundException() {
+        String nonExistingId = UUID.randomUUID().toString();
+        var updateDTO = new ClientUpdateDTO("Nome", LocalDate.now().minusYears(20), "email@email.com", "senha", "fone", "cpf");
+
+        when(clientRepository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+        assertThrows(ClientNotFound.class, () ->
+                clientService.updateClientById(nonExistingId, updateDTO)
+        );
+
+        verify(clientUpdateMapper, never()).updateToClient(any(), any());
+        verify(clientRepository, never()).save(any());
     }
 }
