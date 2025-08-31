@@ -1,6 +1,5 @@
 package br.com.neoapp.api.controller;
 
-import br.com.caelum.stella.tinytype.CPF;
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.repository.ClientRepository;
@@ -264,6 +263,29 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.totalElements", is(25)))
                 .andExpect(jsonPath("$.totalPages", is(2)))
                 .andExpect(jsonPath("$.number", is(0)));
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma página customizada de clientes (page=1, size=5)")
+    void getAllClientsPageable_WithCustomParams_ShouldReturnCustomPage() throws Exception {
+        for (int i = 1; i <= 12; i++) {
+            Client client = new Client();
+            client.setName("Cliente " + String.format("%02d", i));
+            client.setEmail("cliente" + i + "@email.com");
+            client.setCpf(gerarCpf());
+            client.setPassword("senha@123");
+            client.setBirthday(LocalDate.now().minusYears(20));
+            clientRepository.save(client);
+        }
+
+        mockMvc.perform(get("/api/v1/clients")
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(5)))
+                .andExpect(jsonPath("$.totalElements", is(12)))
+                .andExpect(jsonPath("$.totalPages", is(3)))
+                .andExpect(jsonPath("$.number", is(1)));
     }
 
     static String gerarCpf() {
