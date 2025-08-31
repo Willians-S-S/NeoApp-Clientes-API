@@ -436,7 +436,37 @@ public class ClientControllerTest {
         Client clientInDb = clientRepository.findById(existingId).get();
         assertThat(clientInDb.getName()).isEqualTo("Nome Antigo");
     }
+    
+    @Test
+    @DisplayName("Deve excluir um cliente com sucesso e retornar status 204")
+    void deleteClientById_WhenIdExists_ShouldReturn204() throws Exception {
+        Client clientToDelete = clientRepository.save(new Client(
+                null,
+                "Nome Antigo",
+                LocalDate.of(1990, 1, 1),
+                "antigo@email.com",
+                "senha_antiga", // Senha antiga
+                "89994574321",
+                gerarCpf(),
+                null,
+                null
+        ));
+        String existingId = clientToDelete.getId();
 
+        mockMvc.perform(delete("/api/v1/clients/{id}", existingId))
+                .andExpect(status().isNoContent());
+
+        assertThat(clientRepository.existsById(existingId)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deve retornar status 404 ao tentar excluir um cliente com ID inexistente")
+    void deleteClientById_WhenIdDoesNotExist_ShouldReturn404() throws Exception {
+        String nonExistingId = UUID.randomUUID().toString();
+
+        mockMvc.perform(delete("/api/v1/clients/{id}", nonExistingId))
+                .andExpect(status().isNotFound());
+    }
 
     static String gerarCpf() {
         Random r = new Random();
