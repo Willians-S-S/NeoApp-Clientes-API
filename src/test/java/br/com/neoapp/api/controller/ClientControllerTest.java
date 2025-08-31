@@ -383,6 +383,25 @@ public class ClientControllerTest {
         assertThat(updatedClientInDb.getEmail()).isEqualTo("novo@email.com");
     }
 
+    @Test
+    @DisplayName("Deve retornar status 404 ao tentar atualizar um cliente com ID inexistente")
+    void updateClientById_WithNonExistingId_ShouldReturn404() throws Exception {
+        String nonExistingId = UUID.randomUUID().toString();
+        var updateDTO = new ClientUpdateDTO(
+                "Nome",
+                LocalDate.of(1990, 1, 1),
+                "novo@email.com",
+                "senha@123",
+                "89994572322",
+                gerarCpf()
+        );
+
+        mockMvc.perform(put("/api/v1/clients/{id}", nonExistingId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isNotFound());
+    }
+
     static String gerarCpf() {
         Random r = new Random();
         int[] d = new int[11];
