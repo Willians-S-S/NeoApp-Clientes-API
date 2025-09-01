@@ -171,6 +171,19 @@ public class ClientController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "Buscar clientes por múltiplos atributos (filtro dinâmico)",
+            description = "Retorna uma lista paginada de clientes com base em uma combinação de filtros opcionais. " +
+                    "Todos os parâmetros são opcionais. Se nenhum filtro for fornecido, retornará todos os clientes de forma paginada. " +
+                    "O formato para datas é AAAA-MM-DD."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Busca realizada com sucesso",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))
+            )
+    })
     @GetMapping(value = "/attributes")
     public ResponseEntity<Page<ClientResponseDTO>> getAllClientsWithAttributesPage(
             @RequestParam(required = false) String name,

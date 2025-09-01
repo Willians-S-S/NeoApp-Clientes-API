@@ -138,6 +138,22 @@ public class ClientService {
         clientRepository.delete(client);
     }
 
+    /**
+     * Busca uma lista paginada de clientes aplicando filtros dinâmicos.
+     * <p>
+     * Este método repassa os critérios de filtro para a camada de repositório,
+     * que constrói uma consulta dinâmica para buscar os clientes correspondentes.
+     * Os clientes encontrados são então mapeados para DTOs de resposta.
+     *
+     * @param name            Nome parcial ou completo do cliente para filtrar.
+     * @param email           Email exato do cliente para filtrar.
+     * @param cpf             CPF exato do cliente para filtrar.
+     * @param phone           Telefone exato do cliente para filtrar.
+     * @param birthdayStart   A data inicial para o filtro de data de nascimento.
+     * @param birthdayEnd     A data final para o filtro de data de nascimento.
+     * @param pageable        Objeto que contém as informações de paginação e ordenação.
+     * @return Uma {@link Page} de {@link ClientResponseDTO} contendo os clientes que
+     */
     public Page<ClientResponseDTO> getAllClientsWithAttributesPage(
             String name,
             String email,
