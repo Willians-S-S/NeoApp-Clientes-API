@@ -18,11 +18,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 
 @Tag(name = "Clientes", description = "Endpoints para o gerenciamento de clientes")
 @RestController
@@ -167,6 +169,28 @@ public class ClientController {
     public ResponseEntity<Void> deleteClientById(@PathVariable String id){
         clientService.deleteClientById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/attributes")
+    public ResponseEntity<Page<ClientResponseDTO>> getAllClientsWithAttributesPage(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthdayStart,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthdayEnd,
+            Pageable pageable){
+        return ResponseEntity.ok().body(clientService.
+                getAllClientsWithAttributesPage(
+                        name,
+                        email,
+                        cpf,
+                        phone,
+                        birthdayStart,
+                        birthdayEnd,
+                        pageable));
     }
 
 }
