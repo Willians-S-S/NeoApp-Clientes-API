@@ -13,6 +13,7 @@ import br.com.neoapp.api.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,6 +29,9 @@ public class ClientService {
 
     @Autowired
     private ClientUpdateMapper clientUpdateMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Cria um novo cliente no sistema a partir dos dados fornecidos.
@@ -56,6 +60,7 @@ public class ClientService {
         }
 
         Client client = clientMapper.toEntity(clientRequestDTO);
+        client.setPassword(passwordEncoder.encode(client.getPassword()));
         client = clientRepository.save(client);
         return clientMapper.toResponse(client);
     }
