@@ -29,9 +29,7 @@ public class AuthenticationService {
         Client client = clientRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new EmailOrPassworInvalid("Email ou senha inválido."));
 
-        String passEncoder = passwordEncoder.encode(loginRequest.password());
-
-        if (!passwordEncoder.matches(passEncoder, client.getPassword())){
+        if (!passwordEncoder.matches(loginRequest.password(), client.getPassword())){
             throw new EmailOrPassworInvalid("Email ou senha inválido.");
         }
 
