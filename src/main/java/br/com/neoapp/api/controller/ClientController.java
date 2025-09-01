@@ -206,6 +206,28 @@ public class ClientController {
                         pageable));
     }
 
+    @Operation(
+            summary = "Buscar um cliente único por atributos",
+            description = "Localiza um único cliente com base em uma combinação de atributos fornecidos. " +
+                    "É esperado que os parâmetros informados identifiquem um cliente de forma única. " +
+                    "Se nenhum cliente for encontrado, um erro 404 será retornado."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Cliente encontrado com sucesso.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClientResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Nenhum cliente encontrado com os atributos fornecidos.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StandardError.class))
+            )
+    })
     @GetMapping(value = "/one-client-attributes")
     public ResponseEntity<ClientResponseDTO> getClientsWithAttributes(
             @RequestParam(required = false) String name,

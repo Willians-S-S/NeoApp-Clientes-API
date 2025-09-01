@@ -175,6 +175,21 @@ public class ClientService {
         return clientMapper.toPageResponse(clients);
     }
 
+    /**
+     * Busca um único cliente que corresponda a uma combinação de atributos.
+     * <p>
+     * Este método consulta o repositório esperando que a combinação de filtros
+     * retorne no máximo um cliente. Se nenhum cliente for encontrado, lança
+     * uma exceção {@code ClientNotFound}.
+     *
+     * @param name     O nome do cliente a ser pesquisado.
+     * @param email    O email do cliente a ser pesquisado.
+     * @param cpf      O CPF do cliente a ser pesquisado.
+     * @param phone    O telefone do cliente a ser pesquisado.
+     * @param birthday A data de nascimento do cliente a ser pesquisada.
+     * @return O {@link ClientResponseDTO} do cliente único encontrado.
+     * @throws ClientNotFound se nenhum cliente for encontrado com a combinação de atributos fornecida.
+     */
     public ClientResponseDTO getClientsWithAttributes(
             String name,
             String email,
