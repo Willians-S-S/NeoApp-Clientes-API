@@ -79,4 +79,36 @@ public class GlobalExceptionHandler {
                         .build()
                 );
     }
+
+    @ExceptionHandler(EmailOrPassworInvalid.class)
+    public ResponseEntity<StandardError> handleEmailOrPassInvalid(EmailOrPassworInvalid e, HttpServletRequest request){
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return ResponseEntity
+                .status(status)
+                .body(StandardError
+                        .builder()
+                        .timestamp(Instant.now())
+                        .status(status.value())
+                        .error(EmailOrPassworInvalid.ERROR)
+                        .message(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<StandardError> handleRuntimeException(RuntimeException e, HttpServletRequest request){
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity
+                .status(status)
+                .body(StandardError
+                        .builder()
+                        .timestamp(Instant.now())
+                        .status(status.value())
+                        .error("INTERNAL_ERROR")
+                        .message(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
+    }
 }
