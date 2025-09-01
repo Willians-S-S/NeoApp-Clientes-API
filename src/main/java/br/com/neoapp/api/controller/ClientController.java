@@ -206,4 +206,22 @@ public class ClientController {
                         pageable));
     }
 
+    @GetMapping(value = "/one-client-attributes")
+    public ResponseEntity<ClientResponseDTO> getClientsWithAttributes(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthday){
+
+        return ResponseEntity.ok().body(clientService.
+                getClientsWithAttributes(
+                        name,
+                        email,
+                        cpf,
+                        phone,
+                        birthday
+                        ));
+    }
 }

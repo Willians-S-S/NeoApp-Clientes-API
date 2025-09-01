@@ -174,4 +174,22 @@ public class ClientService {
 
         return clientMapper.toPageResponse(clients);
     }
+
+    public ClientResponseDTO getClientsWithAttributes(
+            String name,
+            String email,
+            String cpf,
+            String phone,
+            LocalDate birthday) {
+        Client client = clientRepository.findClientsWithAttributes(
+                name,
+                email,
+                cpf,
+                phone,
+                birthday).orElseThrow(
+                () -> new ClientNotFound("Os dados do cliente informado não foram encontrados. Verifique se as informações digitadas estão corretas.")
+        );
+
+        return clientMapper.toResponse(client);
+    }
 }

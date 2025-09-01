@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client, String> {
@@ -23,4 +24,13 @@ public interface ClientRepository extends JpaRepository<Client, String> {
             "(:birthdayEnd IS NULL OR c.birthday <= :birthdayEnd)"
     )
     Page<Client> getAllClientsWithAttributesPage(String name, String email, String cpf, String phone, LocalDate birthdayStart, LocalDate birthdayEnd, Pageable pageable);
+
+    @Query("SELECT c FROM Client c WHERE " +
+            "(:name IS NULL OR c.name = :name) AND " +
+            "(:email IS NULL OR c.email = :email) AND " +
+            "(:cpf IS NULL OR c.cpf = :cpf) AND " +
+            "(:phone IS NULL OR c.phone = :phone) AND " +
+            "(:birthday IS NULL OR c.birthday = :birthday)"
+    )
+    Optional<Client> findClientsWithAttributes(String name, String email, String cpf, String phone, LocalDate birthday);
 }
