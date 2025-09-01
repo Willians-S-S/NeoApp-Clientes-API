@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -436,7 +437,7 @@ public class ClientControllerTest {
         Client clientInDb = clientRepository.findById(existingId).get();
         assertThat(clientInDb.getName()).isEqualTo("Nome Antigo");
     }
-    
+
     @Test
     @DisplayName("Deve excluir um cliente com sucesso e retornar status 204")
     void deleteClientById_WhenIdExists_ShouldReturn204() throws Exception {
@@ -467,6 +468,76 @@ public class ClientControllerTest {
         mockMvc.perform(delete("/api/v1/clients/{id}", nonExistingId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("Deve retornar todos os clientes (paginado) quando nenhum filtro for aplicado")
+    void searchByAttributes_WithNoFilters_ShouldReturnAllClients() throws Exception {
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        clientRepository.saveAll(List.of(ana, bruno, carlos));
+
+        mockMvc.perform(get("/api/v1/clients/attributes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(3)));
+    }
+
+    @Test
+    @DisplayName("Deve retornar clientes filtrando por parte do nome")
+    void searchByAttributes_ByNameLike_ShouldReturnMatchingClients() throws Exception {
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        clientRepository.saveAll(List.of(ana, bruno, carlos));
+        mockMvc.perform(get("/api/v1/clients/attributes")
+                        .param("name", "Silva"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].name", is("Ana Silva")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar um cliente ao filtrar por CPF exato")
+    void searchByAttributes_ByExactCpf_ShouldReturnOneClient() throws Exception {
+        String cpf = gerarCpf();
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", cpf, null, null);
+        clientRepository.save(bruno);
+
+        mockMvc.perform(get("/api/v1/clients/attributes")
+                        .param("cpf", cpf))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].name", is("Bruno Souza")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar clientes dentro de um intervalo de datas de nascimento")
+    void searchByAttributes_ByBirthdayRange_ShouldReturnMatchingClients() throws Exception {
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        clientRepository.saveAll(List.of(ana, bruno, carlos));
+
+        mockMvc.perform(get("/api/v1/clients/attributes")
+                        .param("birthdayStart", "1995-01-01")
+                        .param("birthdayEnd", "2000-12-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.content[?(@.name == 'Bruno Souza')]").exists())
+                .andExpect(jsonPath("$.content[?(@.name == 'Carlos Pereira')]").exists());
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma página vazia quando nenhum cliente corresponder ao filtro")
+    void searchByAttributes_WithNonMatchingFilter_ShouldReturnEmptyPage() throws Exception {
+        mockMvc.perform(get("/api/v1/clients/attributes")
+                        .param("name", "Zebra"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", is(0)))
+                .andExpect(jsonPath("$.content").isEmpty());
+    }
+
+
 
     static String gerarCpf() {
         Random r = new Random();
