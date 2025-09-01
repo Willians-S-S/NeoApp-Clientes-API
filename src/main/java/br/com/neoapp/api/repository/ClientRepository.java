@@ -33,4 +33,6 @@ public interface ClientRepository extends JpaRepository<Client, String> {
             "(:birthday IS NULL OR c.birthday = :birthday)"
     )
     Optional<Client> findClientsWithAttributes(String name, String email, String cpf, String phone, LocalDate birthday);
+
+    Optional<Client> findByEmail(String email);
 }
