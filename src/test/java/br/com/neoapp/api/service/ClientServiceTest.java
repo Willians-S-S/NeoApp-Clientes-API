@@ -283,4 +283,31 @@ public class ClientServiceTest {
 
         verify(clientRepository, never()).delete(any(Client.class));
     }
+
+    @Test
+    @DisplayName("Deve chamar o repositório e o mapper ao buscar clientes com atributos")
+    void getAllClientsWithAttributesPage_ShouldCallRepositoryAndMapper() {
+        Pageable pageable = PageRequest.of(0, 5);
+        String name = "Teste";
+        LocalDate startDate = LocalDate.of(2000, 1, 1);
+
+        Page<Client> clientPageFromRepo = new PageImpl<>(List.of(new Client()));
+        Page<ClientResponseDTO> expectedDtoPage = new PageImpl<>(List.of(new ClientResponseDTO("id", name, 20, "email@email.com", "phone", "cpf", OffsetDateTime.now(), OffsetDateTime.now())));
+
+        when(clientRepository.getAllClientsWithAttributesPage(
+                any(), any(), any(), any(), any(), any(), any(Pageable.class)
+        )).thenReturn(clientPageFromRepo);
+
+        when(clientMapper.toPageResponse(clientPageFromRepo)).thenReturn(expectedDtoPage);
+
+        Page<ClientResponseDTO> result = clientService.getAllClientsWithAttributesPage(
+                name, null, null, null, startDate, null, pageable
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(expectedDtoPage);
+
+        verify(clientRepository).getAllClientsWithAttributesPage(name, null, null, null, startDate, null, pageable);
+        verify(clientMapper).toPageResponse(clientPageFromRepo);
+    }
 }
