@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class ClientService {
 
@@ -134,5 +136,26 @@ public class ClientService {
                 ClientNotFound("O clinte informado não foi encontrado."));
 
         clientRepository.delete(client);
+    }
+
+    public Page<ClientResponseDTO> getAllClientsWithAttributesPage(
+            String name,
+            String email,
+            String cpf,
+            String phone,
+            LocalDate birthdayStart,
+            LocalDate birthdayEnd,
+            Pageable pageable) {
+
+        Page<Client> clients = clientRepository.getAllClientsWithAttributesPage(
+                name,
+                email,
+                cpf,
+                phone,
+                birthdayStart,
+                birthdayEnd,
+                pageable);
+
+        return clientMapper.toPageResponse(clients);
     }
 }
