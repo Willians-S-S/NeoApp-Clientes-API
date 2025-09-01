@@ -35,39 +35,6 @@ public class ClientController {
     private ClientService clientService;
 
     @Operation(
-            summary = "Criar um novo cliente",
-            description = "Cria um novo cliente no sistema com base nos dados fornecidos. " +
-                    "Após a criação, retorna o status 201 e a localização do novo recurso."
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Cliente criado com sucesso",
-                    content = { @Content(schema = @Schema(implementation = ClientResponseDTO.class), mediaType = "application/json") },
-                    headers = { @Header(name = "Location", description = "URI para acessar o cliente recém-criado") }
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito: O e-mail ou CPF informado já está cadastrado no sistema.",
-                    content = {@Content(schema = @Schema(implementation = StandardError.class)) }
-            ),
-            @ApiResponse(responseCode = "422", description = "Dados inválidos fornecidos", content = { @Content(schema = @Schema(implementation = ValidationError.class)) }),
-    })
-    @PostMapping
-    public ResponseEntity<ClientResponseDTO> creatClient(@RequestBody @Valid ClientRequestDTO clientRequestDTO){
-
-        ClientResponseDTO clientResponseDTO = clientService.creatClient(clientRequestDTO);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(clientResponseDTO.id())
-                .toUri();
-
-        return ResponseEntity
-                .created(location)
-                .body(clientResponseDTO);
-    }
-
-    @Operation(
             summary = "Listar todos os clientes com paginação",
             description = "Retorna uma lista paginada de todos os clientes cadastrados no sistema. " +
                     "Os parâmetros de paginação como `page`, `size` e `sort` podem ser enviados na URL."
