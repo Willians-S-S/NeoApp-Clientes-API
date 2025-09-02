@@ -1,6 +1,5 @@
 package br.com.neoapp.api.controller;
 
-import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
 import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
 import br.com.neoapp.api.exceptions.ClientNotFound;
@@ -8,7 +7,6 @@ import br.com.neoapp.api.exceptions.StandardError;
 import br.com.neoapp.api.exceptions.ValidationError;
 import br.com.neoapp.api.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,10 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.time.LocalDate;
 
 @Tag(name = "Clientes", description = "Endpoints para o gerenciamento de clientes")
@@ -50,6 +47,7 @@ public class ClientController {
             ),
     })
     @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Page<ClientResponseDTO>> getAllClientsPageable(Pageable pageable){
         return ResponseEntity.ok().body(clientService.getAllClientsPageable(pageable));
     }
@@ -77,6 +75,7 @@ public class ClientController {
             ),
     })
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or @authorization.isAuthorized(#id, authentication)")
     public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable String id){
         return ResponseEntity.ok().body(clientService.getClientById(id));
     }
@@ -111,6 +110,7 @@ public class ClientController {
             )
     })
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or @authorization.isAuthorized(#id, authentication)")
     public ResponseEntity<ClientResponseDTO> updateClientById(@PathVariable String id,
                                                               @Valid @RequestBody ClientUpdateDTO clientUpdateDTO){
         return ResponseEntity.ok().body(clientService.updateClientById(id, clientUpdateDTO));
@@ -133,6 +133,7 @@ public class ClientController {
             )
     })
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or @authorization.isAuthorized(#id, authentication)")
     public ResponseEntity<Void> deleteClientById(@PathVariable String id){
         clientService.deleteClientById(id);
         return ResponseEntity.noContent().build();
@@ -152,6 +153,7 @@ public class ClientController {
             )
     })
     @GetMapping(value = "/attributes")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Page<ClientResponseDTO>> getAllClientsWithAttributesPage(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
@@ -196,6 +198,7 @@ public class ClientController {
             )
     })
     @GetMapping(value = "/one-client-attributes")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ClientResponseDTO> getClientsWithAttributes(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
