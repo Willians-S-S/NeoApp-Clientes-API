@@ -3,12 +3,14 @@ package br.com.neoapp.api.service;
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
 import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
+import br.com.neoapp.api.enums.RoleName;
 import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.CpfExistsException;
 import br.com.neoapp.api.exceptions.EmailExistsException;
 import br.com.neoapp.api.mapper.ClientMapper;
 import br.com.neoapp.api.mapper.ClientUpdateMapper;
 import br.com.neoapp.api.model.Client;
+import br.com.neoapp.api.model.Role;
 import br.com.neoapp.api.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -61,6 +63,10 @@ public class ClientService {
 
         Client client = clientMapper.toEntity(clientRequestDTO);
         client.setPassword(passwordEncoder.encode(client.getPassword()));
+
+        Role role = new Role(null, RoleName.USER);
+        client.getRoles().add(role);
+
         client = clientRepository.save(client);
         return clientMapper.toResponse(client);
     }
