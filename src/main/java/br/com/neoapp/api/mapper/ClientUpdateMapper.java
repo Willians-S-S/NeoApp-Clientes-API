@@ -16,5 +16,16 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
  */
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ClientUpdateMapper {
+    /**
+     * Atualiza uma entidade {@link Client} existente com os dados de um {@link ClientUpdateDTO}.
+     * <p>
+     * Os campos nulos no DTO de origem (`userUpdate`) serão ignorados e não sobrescreverão
+     * os valores existentes na entidade de destino (`client`).
+     *
+     * @param userUpdate O DTO contendo os dados para a atualização.
+     * @param client     A entidade {@code Client} que será atualizada. A anotação
+     * {@code @MappingTarget} indica que este objeto será modificado
+     * em vez de um novo ser criado.
+     */
     void updateToClient(ClientUpdateDTO userUpdate, @MappingTarget Client client);
 }
