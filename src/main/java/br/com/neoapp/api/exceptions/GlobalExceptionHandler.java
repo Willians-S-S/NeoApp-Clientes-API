@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailOrPassworInvalid.class)
     public ResponseEntity<StandardError> handleEmailOrPassInvalid(EmailOrPassworInvalid e, HttpServletRequest request){
-        HttpStatus status = HttpStatus.FORBIDDEN;
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
         return ResponseEntity
                 .status(status)
                 .body(StandardError
