@@ -4,6 +4,7 @@ import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
 import br.com.neoapp.api.controller.dto.LoginRequest;
 import br.com.neoapp.api.controller.dto.LoginResponse;
+import br.com.neoapp.api.exceptions.EmailOrPassworInvalid;
 import br.com.neoapp.api.exceptions.StandardError;
 import br.com.neoapp.api.exceptions.ValidationError;
 import br.com.neoapp.api.security.AuthenticationService;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
+@Tag(name = "Autenticação", description = "Endpoints para autenticação e gerenciamento de tokens")
 @RestController
 @RequestMapping(value = "/api/v1/auth")
 public class AuthController {
@@ -34,6 +37,26 @@ public class AuthController {
     @Autowired
     private ClientService clientService;
 
+    @Operation(
+            summary = "Realizar login de usuário",
+            description = "Autentica um usuário com base em suas credenciais (email/senha) e retorna um token JWT em caso de sucesso."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Autenticação bem-sucedida",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autorizado. Credenciais inválidas.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = EmailOrPassworInvalid.class))
+            ),
+    })
     @PostMapping(value = "/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         return ResponseEntity.ok()
