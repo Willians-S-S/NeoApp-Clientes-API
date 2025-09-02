@@ -12,6 +12,7 @@ import br.com.neoapp.api.mapper.ClientUpdateMapper;
 import br.com.neoapp.api.model.Client;
 import br.com.neoapp.api.model.Role;
 import br.com.neoapp.api.repository.ClientRepository;
+import br.com.neoapp.api.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 
 @Service
 public class ClientService {
@@ -34,6 +36,9 @@ public class ClientService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     /**
      * Cria um novo cliente no sistema a partir dos dados fornecidos.
@@ -64,8 +69,10 @@ public class ClientService {
         Client client = clientMapper.toEntity(clientRequestDTO);
         client.setPassword(passwordEncoder.encode(client.getPassword()));
 
-        Role role = new Role(null, RoleName.USER);
-        client.getRoles().add(role);
+        Role userRole = roleRepository.findByName(RoleName.USER)
+                .orElseThrow(() -> new RuntimeException("Erro: Role padrão USER não encontrada."));
+
+        client.setRoles(Collections.singletonList(userRole));
 
         client = clientRepository.save(client);
         return clientMapper.toResponse(client);
