@@ -15,10 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -94,6 +92,11 @@ public class ClientControllerTest {
                 "94360802048"
         );
     }
+
+
+    // ---------------------------------------------------------------------------------
+    // --- INÍCIO DOS TESTES PARA SCOPE_ADMIN ---
+    // ---------------------------------------------------------------------------------
 
     @Test
     @DisplayName("Deve retornar uma página de clientes com os padrões (page=0, size=20)")
@@ -452,5 +455,99 @@ public class ClientControllerTest {
 
         return String.format("%d%d%d%d%d%d%d%d%d%d%d",
                 d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10]);
+    }
+
+
+    // ---------------------------------------------------------------------------------
+    // --- INÍCIO DOS TESTES PARA SCOPE_USER ---
+    // ---------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("USER | Deve retornar 200 OK ao buscar os próprios dados")
+    void getClientById_AsClientOwner_ShouldReturn200() throws Exception {
+        Client clienteLogado = clientRepository.save(new Client(null, "Usuário Logado", LocalDate.now().minusYears(25), "logado@email.com", "senha@123", null, gerarCpf(), null, null, null));
+        String idDoUsuarioLogado = clienteLogado.getId();
+
+        mockMvc.perform(get("/api/v1/clients/{id}", idDoUsuarioLogado)
+                        .with(jwt().jwt(j -> j.subject(idDoUsuarioLogado))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(idDoUsuarioLogado)))
+                .andExpect(jsonPath("$.name", is("Usuário Logado")));
+    }
+
+    @Test
+    @DisplayName("USER | Deve retornar 403 Forbidden ao buscar dados de outro cliente")
+    void getClientById_AsOtherUser_ShouldReturn403() throws Exception {
+
+        Client clienteLogado = clientRepository.save(new Client(null, "Usuário Logado", LocalDate.now().minusYears(25), "logado@email.com", "senha@123", null, gerarCpf(), null, null, null));
+        Client outroCliente = clientRepository.save(new Client(null, "Outro Cliente", LocalDate.now().minusYears(30), "outro@email.com", "senha@123", null, gerarCpf(), null, null, null));
+
+        mockMvc.perform(get("/api/v1/clients/{id}", outroCliente.getId())
+                        .with(jwt().jwt(j -> j.subject(clienteLogado.getId()))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("USER | Deve retornar 200 OK ao atualizar os próprios dados")
+    void updateClientById_AsClientOwner_ShouldReturn200() throws Exception {
+        Client clienteLogado = clientRepository.save(new Client(null, "Nome Antigo", LocalDate.now().minusYears(25), "antigo@email.com", "senha@123", null, gerarCpf(), null, null, null));
+        String idDoUsuarioLogado = clienteLogado.getId();
+
+        var updateDTO = new ClientUpdateDTO(
+                "Nome Novo",
+                LocalDate.of(1995, 1, 1),
+                "novo@email.com",
+                "nova_senha",
+                "11999998888",
+                clienteLogado.getCpf()
+        );
+
+        mockMvc.perform(put("/api/v1/clients/{id}", idDoUsuarioLogado)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO))
+                        .with(jwt().jwt(j -> j.subject(idDoUsuarioLogado))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Nome Novo")));
+    }
+
+    @Test
+    @DisplayName("USER | Deve retornar 403 Forbidden ao tentar atualizar outro cliente")
+    void updateClientById_AsOtherUser_ShouldReturn403() throws Exception {
+        Client clienteLogado = clientRepository.save(new Client(null, "Usuário Logado", LocalDate.now().minusYears(25), "logado@email.com", "senha@123", "89994234356", gerarCpf(), null, null, null));
+        Client outroCliente = clientRepository.save(new Client(null, "Outro Cliente", LocalDate.now().minusYears(30), "outro@email.com", "senha@123", "89994234356", gerarCpf(), null, null, null));
+
+        var updateDTO = new ClientUpdateDTO("Nome Novo", LocalDate.of(2002, 01, 10), "novo_email@email.com", "novar_senha", "89994234356", gerarCpf());
+
+        mockMvc.perform(put("/api/v1/clients/{id}", outroCliente.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO))
+                        .with(jwt().jwt(j -> j.subject(clienteLogado.getId()))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("USER | Deve retornar 204 No Content ao deletar a própria conta")
+    void deleteClientById_AsClientOwner_ShouldReturn204() throws Exception {
+        Client clienteLogado = clientRepository.save(new Client(null, "Usuário Para Deletar", LocalDate.now().minusYears(25), "deletar@email.com", "senha@123", null, gerarCpf(), null, null, null));
+        String idDoUsuarioLogado = clienteLogado.getId();
+
+        mockMvc.perform(delete("/api/v1/clients/{id}", idDoUsuarioLogado)
+                        .with(jwt().jwt(j -> j.subject(idDoUsuarioLogado))))
+                .andExpect(status().isNoContent());
+
+        assertThat(clientRepository.existsById(idDoUsuarioLogado)).isFalse();
+    }
+
+    @Test
+    @DisplayName("USER | Deve retornar 403 Forbidden ao tentar deletar outro cliente")
+    void deleteClientById_AsOtherUser_ShouldReturn403() throws Exception {
+        Client clienteLogado = clientRepository.save(new Client(null, "Usuário Logado", LocalDate.now().minusYears(25), "logado@email.com", "senha@123", null, gerarCpf(), null, null, null));
+        Client outroCliente = clientRepository.save(new Client(null, "Outro Cliente", LocalDate.now().minusYears(30), "outro@email.com", "senha@123", null, gerarCpf(), null, null, null));
+
+        mockMvc.perform(delete("/api/v1/clients/{id}", outroCliente.getId())
+                        .with(jwt().jwt(j -> j.subject(clienteLogado.getId()))))
+                .andExpect(status().isForbidden());
+
+        assertThat(clientRepository.existsById(outroCliente.getId())).isTrue();
     }
 }
