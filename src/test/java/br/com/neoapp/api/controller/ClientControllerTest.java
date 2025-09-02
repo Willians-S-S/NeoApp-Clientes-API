@@ -2,7 +2,9 @@ package br.com.neoapp.api.controller;
 
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
+import br.com.neoapp.api.enums.RoleName;
 import br.com.neoapp.api.model.Client;
+import br.com.neoapp.api.model.Role;
 import br.com.neoapp.api.repository.ClientRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,11 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -31,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
+@WithMockUser(roles = "USER")
 @DisplayName("Testes de Integração para o Endpoint de Criação de Cliente")
 public class ClientControllerTest {
     @Autowired
@@ -92,7 +97,7 @@ public class ClientControllerTest {
     @DisplayName("Deve criar cliente e retornar status 201 ao receber dados válidos")
     void creatClientWithValidDataShouldPersistClientAndReturn201() throws Exception {
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequestDTO)))
                 .andExpect(status().isCreated())
@@ -109,13 +114,13 @@ public class ClientControllerTest {
     void creatClientWithExistingEmailShouldReturn409() throws Exception {
         clientRepository.save(objectMapper.convertValue(validRequestDTO, br.com.neoapp.api.model.Client.class));
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequestDTO)))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value("EMAIL_ALREADY_EXISTS"))
                 .andExpect(jsonPath("$.message").value("O endereço de e-mail informado já está registrado."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"));
     }
 
     @Test
@@ -123,13 +128,13 @@ public class ClientControllerTest {
     void creatClientWithExistingCpfShouldReturn409() throws Exception {
         clientRepository.save(objectMapper.convertValue(validRequestDTO, br.com.neoapp.api.model.Client.class));
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequestDTO)))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value("CPF_ALREADY_EXISTS"))
                 .andExpect(jsonPath("$.message").value("O CPF informado já está registrado."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"));
     }
 
     @Test
@@ -137,26 +142,26 @@ public class ClientControllerTest {
     void creatClientWithInvalidDataShouldReturn422() throws Exception {
         invalidRequestDTO = new ClientRequestDTO("", null, "email-invalido", "123", null, "cpf-invalido");
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"));
     }
 
     @Test
     @DisplayName("Deve retornar status 422 para formato de e-mail inválido")
     void creatClientWithInvalidEmailShouldReturn422() throws Exception {
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(emailInvalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("email"))
                 .andExpect(jsonPath("$.errors[0].message").value("Formato de e-mail inválido."));
     }
@@ -165,13 +170,13 @@ public class ClientControllerTest {
     @DisplayName("Deve retornar status 422 para nome fora do tamanho permitido")
     void creatClientWithInvalidNameShouldReturn422() throws Exception {
 
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nameInvalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("name"))
                 .andExpect(jsonPath("$.errors[0].message").value("size must be between 2 and 100"));
     }
@@ -187,13 +192,13 @@ public class ClientControllerTest {
                 "11987654321",
                 "94360802048"
         );
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nameEmptyInvalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("name"))
                 .andExpect(jsonPath("$.errors[0].message").value("O nome não pode ser vazio."));
     }
@@ -209,13 +214,13 @@ public class ClientControllerTest {
                 "11987654321",
                 "11111111111"
         );
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nameEmptyInvalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("cpf"))
                 .andExpect(jsonPath("$.errors[0].message").value("CPF inválido."));
     }
@@ -231,13 +236,13 @@ public class ClientControllerTest {
                 "11987654321",
                 "94360802048"
         );
-        mockMvc.perform(post("/api/v1/clients")
+        mockMvc.perform(post("/api/v1/auth/sign")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nameEmptyInvalidRequestDTO)))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.error").value("Validation Error"))
                 .andExpect(jsonPath("$.message").value("Dados inválidos. Verifique os erros de cada campo."))
-                .andExpect(jsonPath("$.path").value("/api/v1/clients"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/sign"))
                 .andExpect(jsonPath("$.errors[0].fieldName").value("password"))
                 .andExpect(jsonPath("$.errors[0].message").value("A senha deve ter no mínimo 8 caracteres."));
     }
@@ -293,9 +298,12 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar uma lista de clientes ordenada por nome em ordem descendente")
     void getAllClientsPageable_WithSortParam_ShouldReturnSortedPage() throws Exception {
-        clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null));
-        clientRepository.save(new Client(null, "Ana", LocalDate.now().minusYears(30), "ana@email.com", "senha@123", null, gerarCpf(), null, null));
-        clientRepository.save(new Client(null, "Carlos", LocalDate.now().minusYears(30), "carlos@email.com", "senha@123", null, gerarCpf(), null, null));
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+
+        clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null, roles));
+        clientRepository.save(new Client(null, "Ana", LocalDate.now().minusYears(30), "ana@email.com", "senha@123", null, gerarCpf(), null, null, roles));
+        clientRepository.save(new Client(null, "Carlos", LocalDate.now().minusYears(30), "carlos@email.com", "senha@123", null, gerarCpf(), null, null, roles));
 
         mockMvc.perform(get("/api/v1/clients")
                         .param("sort", "name,desc"))
@@ -317,7 +325,9 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar um cliente e status 200 quando o ID existir")
     void getClientById_WhenIdExists_ShouldReturnClientAndStatus200() throws Exception {
-        Client savedClient = clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null));
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+        Client savedClient = clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null, roles));
         String existingId = savedClient.getId();
 
         mockMvc.perform(get("/api/v1/clients/{id}", existingId))
@@ -348,6 +358,9 @@ public class ClientControllerTest {
     @DisplayName("Deve atualizar um cliente com sucesso e retornar status 200")
     void updateClientById_WithValidDataAndExistingId_ShouldReturn200() throws Exception {
         String cpf = gerarCpf();
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
         Client existingClient = clientRepository.save(new Client(
                 null,
                 "Nome Antigo",
@@ -357,7 +370,8 @@ public class ClientControllerTest {
                 "89994574321",
                 cpf,
                 null,
-                null
+                null,
+                roles
         ));
         String existingId = existingClient.getId();
 
@@ -407,6 +421,8 @@ public class ClientControllerTest {
     @DisplayName("Deve retornar status 422 ao tentar atualizar com dados inválidos")
     void updateClientById_WithInvalidData_ShouldReturn422() throws Exception {
         String cpf = gerarCpf();
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
         Client existingClient = clientRepository.save(new Client(
                 null,
                 "Nome Antigo",
@@ -416,7 +432,8 @@ public class ClientControllerTest {
                 "89994574321",
                 cpf,
                 null,
-                null
+                null,
+                roles
         ));
         String existingId = existingClient.getId();
 
@@ -441,6 +458,8 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve excluir um cliente com sucesso e retornar status 204")
     void deleteClientById_WhenIdExists_ShouldReturn204() throws Exception {
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
         Client clientToDelete = clientRepository.save(new Client(
                 null,
                 "Nome Antigo",
@@ -450,7 +469,8 @@ public class ClientControllerTest {
                 "89994574321",
                 gerarCpf(),
                 null,
-                null
+                null,
+                roles
         ));
         String existingId = clientToDelete.getId();
 
@@ -472,9 +492,11 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar todos os clientes (paginado) quando nenhum filtro for aplicado")
     void searchByAttributes_WithNoFilters_ShouldReturnAllClients() throws Exception {
-        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
         clientRepository.saveAll(List.of(ana, bruno, carlos));
 
         mockMvc.perform(get("/api/v1/clients/attributes"))
@@ -485,9 +507,11 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar clientes filtrando por parte do nome")
     void searchByAttributes_ByNameLike_ShouldReturnMatchingClients() throws Exception {
-        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
         clientRepository.saveAll(List.of(ana, bruno, carlos));
         mockMvc.perform(get("/api/v1/clients/attributes")
                         .param("name", "Silva"))
@@ -500,7 +524,9 @@ public class ClientControllerTest {
     @DisplayName("Deve retornar um cliente ao filtrar por CPF exato")
     void searchByAttributes_ByExactCpf_ShouldReturnOneClient() throws Exception {
         String cpf = gerarCpf();
-        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", cpf, null, null);
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", cpf, null, null, roles);
         clientRepository.save(bruno);
 
         mockMvc.perform(get("/api/v1/clients/attributes")
@@ -513,9 +539,11 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar clientes dentro de um intervalo de datas de nascimento")
     void searchByAttributes_ByBirthdayRange_ShouldReturnMatchingClients() throws Exception {
-        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
-        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null);
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
+        Client ana = new Client(null, "Ana Silva", LocalDate.of(1990, 5, 15), "ana.silva@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client bruno = new Client(null, "Bruno Souza", LocalDate.of(1995, 10, 20), "bruno.souza@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
+        Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
         clientRepository.saveAll(List.of(ana, bruno, carlos));
 
         mockMvc.perform(get("/api/v1/clients/attributes")
