@@ -1,6 +1,8 @@
 package br.com.neoapp.api.repository;
 
+import br.com.neoapp.api.enums.RoleName;
 import br.com.neoapp.api.model.Client;
+import br.com.neoapp.api.model.Role;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -23,6 +26,8 @@ public class ClientRepositoryTest {
     void setUp(){
         clientRepository.deleteAll();
 
+        Role role = new Role(null, RoleName.USER);
+        List<Role> roles = List.of(role);
         Client client = new Client(
                 null,
                 "Ana Silva",
@@ -32,7 +37,8 @@ public class ClientRepositoryTest {
                 "89994564321",
                 "90437179087",
                 OffsetDateTime.now(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                roles
         );
 
         clientRepository.save(client);
