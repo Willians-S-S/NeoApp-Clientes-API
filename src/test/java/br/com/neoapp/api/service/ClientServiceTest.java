@@ -3,13 +3,16 @@ package br.com.neoapp.api.service;
 import br.com.neoapp.api.controller.dto.ClientRequestDTO;
 import br.com.neoapp.api.controller.dto.ClientResponseDTO;
 import br.com.neoapp.api.controller.dto.ClientUpdateDTO;
+import br.com.neoapp.api.enums.RoleName;
 import br.com.neoapp.api.exceptions.ClientNotFound;
 import br.com.neoapp.api.exceptions.CpfExistsException;
 import br.com.neoapp.api.exceptions.EmailExistsException;
 import br.com.neoapp.api.mapper.ClientMapper;
 import br.com.neoapp.api.mapper.ClientUpdateMapper;
 import br.com.neoapp.api.model.Client;
+import br.com.neoapp.api.model.Role;
 import br.com.neoapp.api.repository.ClientRepository;
+import br.com.neoapp.api.repository.RoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -42,6 +46,12 @@ public class ClientServiceTest {
     private ClientRepository clientRepository;
     @Mock
     private ClientMapper clientMapper;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private ClientUpdateMapper clientUpdateMapper;
@@ -99,15 +109,20 @@ public class ClientServiceTest {
     @Test
     @DisplayName("Deve criar um cliente com sucesso ao fornecer dados válidos")
     void createClientWithValidDataShouldSucceed() {
+        Role userRole = new Role(null, RoleName.USER);
+
         when(clientRepository.existsByEmail(anyString())).thenReturn(false);
         when(clientRepository.existsByCpf(anyString())).thenReturn(false);
+        when(roleRepository.findByName(RoleName.USER)).thenReturn(Optional.of(userRole));
+        when(passwordEncoder.encode(anyString())).thenReturn("senha_codificada_mock");
         when(clientMapper.toEntity(clientRequestDTO)).thenReturn(client);
-        when(clientRepository.save(client)).thenReturn(savedClient);
+        when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
         when(clientMapper.toResponse(savedClient)).thenReturn(clientResponseDTO);
 
-        clientService.creatClient(clientRequestDTO);
+        ClientResponseDTO actualResponse = clientService.creatClient(clientRequestDTO);
 
-        verify(clientRepository).save(client);
+        verify(clientRepository).save(any(Client.class));
+        assertThat(actualResponse).isEqualTo(clientResponseDTO);
     }
 
     @Test
