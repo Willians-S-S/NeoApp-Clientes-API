@@ -17,7 +17,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -31,7 +34,7 @@ public class AuthController {
     @Autowired
     private ClientService clientService;
 
-    @GetMapping(value = "/login")
+    @PostMapping(value = "/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         return ResponseEntity.ok()
                 .body(authenticationService.authenticate(loginRequest));
