@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
-@WithMockUser(roles = "USER")
 @DisplayName("Testes de Integração para o Endpoint de Criação de Cliente")
 public class ClientControllerTest {
     @Autowired
@@ -109,7 +111,8 @@ public class ClientControllerTest {
             clientRepository.save(client);
         }
 
-        mockMvc.perform(get("/api/v1/clients"))
+        mockMvc.perform(get("/api/v1/clients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()", is(20)))
@@ -132,6 +135,7 @@ public class ClientControllerTest {
         }
 
         mockMvc.perform(get("/api/v1/clients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("page", "1")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -152,6 +156,7 @@ public class ClientControllerTest {
         clientRepository.save(new Client(null, "Carlos", LocalDate.now().minusYears(30), "carlos@email.com", "senha@123", null, gerarCpf(), null, null, roles));
 
         mockMvc.perform(get("/api/v1/clients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("sort", "name,desc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].name", is("Carlos")))
@@ -162,7 +167,7 @@ public class ClientControllerTest {
     @Test
     @DisplayName("Deve retornar uma página vazia quando não houver clientes")
     void getAllClientsPageable_WhenNoClients_ShouldReturnEmptyPage() throws Exception {
-        mockMvc.perform(get("/api/v1/clients"))
+        mockMvc.perform(get("/api/v1/clients").with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty())
                 .andExpect(jsonPath("$.totalElements", is(0)));
@@ -176,7 +181,8 @@ public class ClientControllerTest {
         Client savedClient = clientRepository.save(new Client(null, "Bruno", LocalDate.now().minusYears(30), "bruno@email.com", "senha@123", null, gerarCpf(), null, null, roles));
         String existingId = savedClient.getId();
 
-        mockMvc.perform(get("/api/v1/clients/{id}", existingId))
+        mockMvc.perform(get("/api/v1/clients/{id}", existingId)
+                .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(existingId)))
                 .andExpect(jsonPath("$.name", is("Bruno")))
@@ -191,7 +197,8 @@ public class ClientControllerTest {
         String expectedMessage = "O clinte informado não foi encontrado.";
         String expectedPath = "/api/v1/clients/" + nonExistentId;
 
-        mockMvc.perform(get("/api/v1/clients/{id}", nonExistentId))
+        mockMvc.perform(get("/api/v1/clients/{id}", nonExistentId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status", is(404)))
@@ -231,6 +238,7 @@ public class ClientControllerTest {
         );
 
         mockMvc.perform(put("/api/v1/clients/{id}", existingId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDTO)))
                 .andExpect(status().isOk())
@@ -258,6 +266,7 @@ public class ClientControllerTest {
         );
 
         mockMvc.perform(put("/api/v1/clients/{id}", nonExistingId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDTO)))
                 .andExpect(status().isNotFound());
@@ -293,6 +302,7 @@ public class ClientControllerTest {
         );
 
         mockMvc.perform(put("/api/v1/clients/{id}", existingId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUpdateDTO)))
                 .andExpect(status().isUnprocessableEntity());
@@ -320,7 +330,8 @@ public class ClientControllerTest {
         ));
         String existingId = clientToDelete.getId();
 
-        mockMvc.perform(delete("/api/v1/clients/{id}", existingId))
+        mockMvc.perform(delete("/api/v1/clients/{id}", existingId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isNoContent());
 
         assertThat(clientRepository.existsById(existingId)).isFalse();
@@ -331,7 +342,8 @@ public class ClientControllerTest {
     void deleteClientById_WhenIdDoesNotExist_ShouldReturn404() throws Exception {
         String nonExistingId = UUID.randomUUID().toString();
 
-        mockMvc.perform(delete("/api/v1/clients/{id}", nonExistingId))
+        mockMvc.perform(delete("/api/v1/clients/{id}", nonExistingId)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isNotFound());
     }
 
@@ -345,7 +357,8 @@ public class ClientControllerTest {
         Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
         clientRepository.saveAll(List.of(ana, bruno, carlos));
 
-        mockMvc.perform(get("/api/v1/clients/attributes"))
+        mockMvc.perform(get("/api/v1/clients/attributes")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements", is(3)));
     }
@@ -360,6 +373,7 @@ public class ClientControllerTest {
         Client carlos = new Client(null, "Carlos Pereira", LocalDate.of(2000, 1, 30), "carlos.p@email.com", "senha@123", "89994352312", gerarCpf(), null, null, roles);
         clientRepository.saveAll(List.of(ana, bruno, carlos));
         mockMvc.perform(get("/api/v1/clients/attributes")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("name", "Silva"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements", is(1)))
@@ -376,6 +390,7 @@ public class ClientControllerTest {
         clientRepository.save(bruno);
 
         mockMvc.perform(get("/api/v1/clients/attributes")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("cpf", cpf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements", is(1)))
@@ -393,6 +408,7 @@ public class ClientControllerTest {
         clientRepository.saveAll(List.of(ana, bruno, carlos));
 
         mockMvc.perform(get("/api/v1/clients/attributes")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("birthdayStart", "1995-01-01")
                         .param("birthdayEnd", "2000-12-31"))
                 .andExpect(status().isOk())
@@ -405,6 +421,7 @@ public class ClientControllerTest {
     @DisplayName("Deve retornar uma página vazia quando nenhum cliente corresponder ao filtro")
     void searchByAttributes_WithNonMatchingFilter_ShouldReturnEmptyPage() throws Exception {
         mockMvc.perform(get("/api/v1/clients/attributes")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_ADMIN")))
                         .param("name", "Zebra"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements", is(0)))
