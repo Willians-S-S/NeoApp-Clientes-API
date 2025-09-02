@@ -3,6 +3,7 @@ package br.com.neoapp.api.exceptions;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -106,6 +107,22 @@ public class GlobalExceptionHandler {
                         .timestamp(Instant.now())
                         .status(status.value())
                         .error("INTERNAL_ERROR")
+                        .message(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<StandardError> handleAuthorizationDeniedException(AuthorizationDeniedException e, HttpServletRequest request){
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return ResponseEntity
+                .status(status)
+                .body(StandardError
+                        .builder()
+                        .timestamp(Instant.now())
+                        .status(status.value())
+                        .error("Não autorizado.")
                         .message(e.getMessage())
                         .path(request.getRequestURI())
                         .build()
