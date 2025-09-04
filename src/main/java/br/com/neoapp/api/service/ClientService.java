@@ -180,6 +180,10 @@ public class ClientService {
             LocalDate birthdayStart,
             LocalDate birthdayEnd,
             Pageable pageable) {
+        String nameParam = (name != null && name.trim().isEmpty()) ? null : name;
+        String emailParam = (email != null && email.trim().isEmpty()) ? null : email;
+        String cpfParam = (cpf != null && cpf.trim().isEmpty()) ? null : cpf;
+        String phoneParam = (phone != null && phone.trim().isEmpty()) ? null : phone;
 
         Page<Client> clients = clientRepository.getAllClientsWithAttributesPage(
                 name,

@@ -51,16 +51,16 @@ public interface ClientRepository extends JpaRepository<Client, String> {
      * @param pageable       O objeto de paginação e ordenação.
      * @return uma {@link Page} de clientes que correspondem aos critérios de busca.
      */
-    @Query("SELECT c FROM Client c WHERE " +
-            "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:cpf IS NULL OR c.cpf = :cpf) AND " +
-            "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
+    @Query(value = "SELECT * FROM client_table c WHERE " +
+            "(:name IS NULL OR :name = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:email IS NULL OR :email = '' OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+            "(:cpf IS NULL OR :cpf = '' OR c.cpf = :cpf) AND " +
+            "(:phone IS NULL OR :phone = '' OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
             "(:birthdayStart IS NULL OR c.birthday >= :birthdayStart) AND " +
-            "(:birthdayEnd IS NULL OR c.birthday <= :birthdayEnd)"
+            "(:birthdayEnd IS NULL OR c.birthday <= :birthdayEnd)",
+            nativeQuery = true
     )
     Page<Client> getAllClientsWithAttributesPage(String name, String email, String cpf, String phone, LocalDate birthdayStart, LocalDate birthdayEnd, Pageable pageable);
-
     /**
      * Busca um único cliente com base em uma combinação de atributos exatos.
      * <p>
