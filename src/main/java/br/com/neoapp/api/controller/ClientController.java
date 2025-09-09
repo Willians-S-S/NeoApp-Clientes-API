@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +49,7 @@ public class ClientController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<Page<ClientResponseDTO>> getAllClientsPageable(Pageable pageable){
+    public ResponseEntity<Page<ClientResponseDTO>> getAllClientsPageable(@ParameterObject Pageable pageable){
         return ResponseEntity.ok().body(clientService.getAllClientsPageable(pageable));
     }
 
@@ -163,7 +164,7 @@ public class ClientController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthdayStart,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthdayEnd,
-            Pageable pageable){
+            @ParameterObject Pageable pageable){
         return ResponseEntity.ok().body(clientService.
                 getAllClientsWithAttributesPage(
                         name,
